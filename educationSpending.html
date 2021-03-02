@@ -1,0 +1,262 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Education Spending</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,700,500,900' rel='stylesheet' type='text/css'>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-panels.min.js"></script>
+		<script src="js/init.js"></script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel-noscript.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-desktop.css" />
+		</noscript>
+		<script src="https://www.gstatic.com/charts/loader.js"></script>
+		<script>
+			google.charts.load('current', {'packages':['corechart','geochart']});
+			google.charts.setOnLoadCallback(drawAllSheets);
+	
+			function drawAllSheets() {
+				drawSheetName('education', 'SELECT A,C,D,E,F,G,H,I,J', educationSpendingResponseHandler);
+				drawSheetName('education', 'SELECT A,K', educationMeanSpendingResponseHandler);
+				drawSheetName('educationtogdp', 'SELECT A,C,D,E,F,G,H,I,J', educationToGdpResponseHandler);
+				drawSheetName('educationtogdp', 'SELECT A,J', educationToGdpTopResponseHandler);
+				drawSheetName('educationpercapita', 'SELECT A,L,M,N,O', perCapitaEducationToGdpResponseHandler);
+				drawSheetName('education', 'SELECT A,L', educationGrowResponseHandler);
+				drawSheetName('education', 'SELECT A,M', educationGrowRateResponseHandler);
+			} //drawAllSheets
+	
+			function drawSheetName(sheetName, query, responseHandler){
+				var queryString = encodeURIComponent(query);
+				var query = new google.visualization.Query(
+					'https://docs.google.com/spreadsheets/d/1goZqWAPoNeKlGyWpantIMhWegRfgnA5F-Nm4moO6l4Y/gviz/tq?sheet='
+					+ sheetName + '&headers=1&tq=' + queryString);
+				query.send(responseHandler);
+			} //drawSheetName
+	
+			function educationSpendingResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 8, desc: true});
+				var options = {
+					legend: {},
+					bar: {groupWidth: "90%"},
+					title: "Education Spending 2011-2018 (Billions $)",
+					vAxis: {title: "Spending in Billions ($)"},
+					hAxis: {title: 'Countries'},
+					colors: ['#2a435b','#a55d34', '#b8926a', '#cca085', '#caa78d','#dbcca9','#b3a188','#648181']
+				};
+				var chart = new google.visualization.ColumnChart(document.getElementById('educationSpending_div'));
+				chart.draw(data, options);
+			} //educationSpendingResponseHandler
+	
+			function educationMeanSpendingResponseHandler(response){
+				var data = response.getDataTable();
+				var option = {colorAxis: {colors: ['#79a3bb', '#31597b']}, };
+				var chart = new google.visualization.GeoChart(document.getElementById('educationMeanSpending_div'));
+				chart.draw(data,option)
+			}//educationMeanSpendingResponseHandler
+	
+			function educationToGdpResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 8, desc: true});
+				var options = {
+					bar: {groupWidth: "90%"},
+					title: "Education Spending as Shared of GDP (%)",
+					vAxis: {title: "Percentage of GDP(%)"},
+					hAxis: {title: 'Countries'},
+					colors: ['#7c5488', '#504d86', '#81738d', '#7f8cbf','#bcc3e7','#c9c8d6','#c9a9b4','#d6b7bf'],
+				};
+				var chart = new google.visualization.ColumnChart(document.getElementById('educationToGdp_div'));
+				chart.draw(data, options);
+			} //educationSpendingResponseHandler
+			
+			function educationToGdpTopResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true}); 
+				var options = {
+					colors: ['#4a675a'],
+					legend: 'none',
+					annotations: {alwaysOutside: true}, 
+					title: 'Top 10 by Education Spending as shared of GDP % (2018)',
+					vAxis: {title: 'Country'},
+					hAxis: {title: 'Percentage of GDP(%)'}
+				};
+				var view = new google.visualization.DataView(data);
+				view.setColumns([0,1, {
+					calc: function(dt, row){
+						return Math.ceil(dt.getFormattedValue(row, 1)) + '%';
+					},
+					sourceColumn: 1,
+					type: 'string',
+					role: 'annotation'
+				}]);
+				var chart = new google.visualization.BarChart(document.getElementById('educationToGdpTop_div'));
+				chart.draw(view, options);
+			}//educationToGdpTopResponseHandler
+	
+			function perCapitaEducationToGdpResponseHandler(response){
+				var data = response.getDataTable();
+				var options = {
+					colorAxis: {colors: ['#f3ae51', '#1a3300']}, 
+					title: "Per Capita Education Spending VS Per Capita GDP in Dollars $ (2018)",
+					vAxis: {title: "Per Capita Education Spending in Dollars ($)"},
+					hAxis: {title: 'GDP Per Capita in Dollars ($)'}
+				};
+				var chart = new google.visualization.BubbleChart(document.getElementById('perCapita_educationToGdp_div'));
+				chart.draw(data, options);
+			} //perCapitaEducationToGdpResponseHandler
+	
+			function educationGrowResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					legend: 'none',
+					annotations: {alwaysOutside: true},
+					vAxis: {title: 'Growing Values in Billions ($)'},
+					hAxis: {title: 'Countries'},
+					title: 'Education Spending Growing Top 10 Countries in Billions $ (2011-2018)',
+					colors: ['#673341'],
+				};
+				var view = new google.visualization.DataView(data);
+				view.setColumns([0,1,{
+						calc: function(dt, row){
+							return Math.floor(dt.getFormattedValue(row, 1)) + 'B';
+						},
+						sourceColumn: 1,
+						type: 'string',
+						role: 'annotation'
+				}]);
+				var chart = new google.visualization.ColumnChart(document.getElementById('educationGrow_div'));
+				chart.draw(view, options);
+			} //educationGrowResponseHandler
+	
+			function educationGrowRateResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					legend: 'none',
+					annotations: {alwaysOutside: true},
+					vAxis: {title: 'Countries'},
+					hAxis: {title: 'Growing Percentage(%)'},
+					title: 'Education Spending Fast Growing Top 10 in Percentage % (2011-2018)',
+					colors: ['#31597b'],
+				};
+				var view = new google.visualization.DataView(data);
+				view.setColumns([0,1,{
+						calc: function(dt, row){
+							return Math.floor(dt.getFormattedValue(row, 1)) + '%';
+						},
+						sourceColumn: 1,
+						type: 'string',
+						role: 'annotation'
+				}]);
+				var chart = new google.visualization.BarChart(document.getElementById('educationGrowRate_div'));
+				chart.draw(view, options);
+			} //educationGrowRateResponseHandler
+		</script>
+	</head>
+
+	<body>
+	<!-- Header -->
+		<div id="header">
+			<div id="nav-wrapper"> 
+				<!-- Nav -->
+				<nav id="nav">
+					<ul>
+						<li><a href="index.html">Homepage</a></li>
+						<li class="active"><a href="educationSpending.html">education spending</a></li>
+						<li><a href="healthcareSpending.html">healthcare spending</a></li>
+						<li><a href="militarySpending.html">military spending</a></li>
+					</ul>
+				</nav>
+			</div>
+			<div class="container"> 
+				<!-- Logo -->
+				<div id="logo">
+					<h1><a href="#">Education</a></h1>
+					<span class="tag">Spending</span>
+				</div>
+			</div>
+		</div>
+	<!-- Header --> 
+
+	<!-- Tweet -->
+		<div id="tweet">
+			<div class="container">
+				<section>
+					<blockquote>
+						Education Spending Analysis for Top 10 G20 Countries
+						<br>
+						Top 1: United States
+					</blockquote>
+					<div id="educationSpending_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Average Education Spending 2011-2018 (Billions $)
+						<br>
+						Top 1: United States - 818 Billlions 
+					</blockquote>
+					<div id="educationMeanSpending_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Education Spending as % GDP 2011-2018 
+						<br>
+						Top 1: Saudi Arabia
+					</blockquote>
+					<div id="educationToGdp_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Education Spending as % GDP (2018)
+						<br>
+						Top 1: Saudi Arabia 7.3%
+					</blockquote>
+					<div id="educationToGdpTop_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Per Capita Education Spending VS GDP (2018)
+					</blockquote>
+					<div id="perCapita_educationToGdp_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Fast Growing Countries in Values (2011-2018)
+						<br>
+						Top 1: United Stated - 116 Billions
+						<br>
+						Top 2: China - 113 Billions
+					</blockquote>
+					<div id="educationGrow_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Fast Growing Countries in Percentage (2011-2018)
+						<br>
+						Top 1: China - 85%
+					</blockquote>
+					<div id="educationGrowRate_div" style="width: 1000px; height:500px;"></div>
+				</section>
+			</div>
+		</div>
+	<!-- /Tweet -->
+
+	<!-- Footer -->
+		<div id="footer">
+			<div class="container">
+				<section>
+					<header>
+						<h2>Back to <a href="educationSpending.html">Top</a>
+							| Next <a href="healthcareSpending.html">Healthcare</a>
+						</h2>
+						<span class="byline">DATS 6401 - Individual Project - Sisi Zhang</span>
+					</header>
+				</section>
+			</div>
+		</div>
+	<!-- /Footer -->
+
+	<!-- Copyright -->
+		<div id="copyright">
+			<div class="container">
+				Design: <a href="http://templated.co">TEMPLATED</a> Images: <a href="http://unsplash.com">Unsplash</a> (<a href="http://unsplash.com/cc0">CC0</a>)
+				&copy; <script>var d = new Date(); document.write(d.getFullYear());</script> 
+                | Sisi Zhang
+			</div>
+		</div>
+	</body>
+</html>

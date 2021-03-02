@@ -1,0 +1,267 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Healthcare Spending</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,700,500,900' rel='stylesheet' type='text/css'>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-panels.min.js"></script>
+		<script src="js/init.js"></script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel-noscript.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-desktop.css" />
+		</noscript>
+		<script src="https://www.gstatic.com/charts/loader.js"></script>
+		<script>
+			google.charts.load('current', {'packages':['corechart','geochart']});
+			google.charts.setOnLoadCallback(drawAllSheets);
+
+			function drawAllSheets() {
+				drawSheetName('healthcare', 'SELECT A,C,D,E,F,G,H,I,J', healthcareSpendingResponseHandler);
+				drawSheetName('healthcare', 'SELECT A,K', healthcareMeanSpendingResponseHandler);
+				drawSheetName('healthcaretogdp', 'SELECT A,C,D,E,F,G,H,I,J', healthcareToGdpResponseHandler);
+				drawSheetName('healthcaretogdp', 'SELECT A,J', healthcareToGdpTopResponseHandler);
+				drawSheetName('healthcarepercapita', 'SELECT A,L,M,N,O', perCapitaHealthcareToGdpResponseHandler);
+				drawSheetName('healthcare', 'SELECT A,L', healthcareGrowResponseHandler);
+				drawSheetName('healthcare', 'SELECT A,M', healthcareGrowRateResponseHandler);
+			} //drawAllSheets
+
+			function drawSheetName(sheetName, query, responseHandler){
+				var queryString = encodeURIComponent(query);
+				var query = new google.visualization.Query(
+					'https://docs.google.com/spreadsheets/d/1goZqWAPoNeKlGyWpantIMhWegRfgnA5F-Nm4moO6l4Y/gviz/tq?sheet='
+					+ sheetName + '&headers=1&tq=' + queryString);
+				query.send(responseHandler);
+			} //drawSheetName
+
+			function healthcareSpendingResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 8, desc: true});
+				var options = {
+					legend: {},
+					bar: {groupWidth: "90%"},
+					title: "Healthcare Expenditure from 2011-2018 (Billions $)",
+					vAxis: {title: "Spending in Billions ($)"},
+					hAxis: {title: 'Countries'},
+					colors: ['#062e2d','#335c61', '#254d4f', '#6f998c', '#216b77','#3e7f8d','#6f998c','#8fa3a7']
+				};
+				var chart = new google.visualization.ColumnChart(document.getElementById('healthcareSpending_div'));
+				chart.draw(data, options);
+			} //healthcareSpendingResponseHandler
+
+			function healthcareMeanSpendingResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var option = {
+					title: ' Average Healthcare Spending 2011-2018 in US $ (Billions)',
+					colors: ['#504d86', '#7c5488','#81738d', '#7f8cbf','#bcc3e7','#c9c8d6','#c9c8d6','#c9c8d6','#c9c8d6','#c9c8d6','#c9c8d6','#c9c8d6','#c9c8d6','#c9c8d6'],
+				};
+				var chart = new google.visualization.PieChart(document.getElementById('healthcareMeanSpending_div'));
+				chart.draw(data,option)
+			}//healthcareMeanSpendingResponseHandler
+
+			function healthcareToGdpResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 8, desc: true});
+				var options = {
+					legend: {},
+					bar: {groupWidth: "90%"},
+					title: "Healthcare Expenditure as Shared of GDP (%)",
+					vAxis: {title: "Percentage of GDP(%)"},
+					hAxis: {title: 'Countries'},
+					colors: ['#5a3012', '#5b4218', '#974410', '#7c6320','#a4835b','#8e825a','#c09105','#745a52'],
+				};
+				var chart = new google.visualization.ColumnChart(document.getElementById('healthcareToGdp_div'));
+				chart.draw(data, options);
+			} //healthcareSpendingResponseHandler
+			
+			function healthcareToGdpTopResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					colors: ['#565d70'],
+					legend: 'none',
+					bars: 'horizontal',
+					annotations: {alwaysOutside: true}, 
+					title: 'Top 10 by Healthcare Expenditure for 2018 as shared of GDP (%)',
+					vAxis: {title: 'Country'},
+					hAxis: {title: 'Percentage of GDP(%)'}
+				};
+				var view = new google.visualization.DataView(data);
+				view.setColumns([0,1, {
+					calc: function(dt, row){                
+						return Math.ceil(dt.getFormattedValue(row, 1)) + '%';
+					},
+					sourceColumn: 1,
+					type: 'string',
+					role: 'annotation'
+				}]);
+				var chart = new google.visualization.BarChart(document.getElementById('healthcareToGdpTop_div'));
+				chart.draw(view, options);
+			}//healthcareToGdpTopResponseHandler
+
+			function perCapitaHealthcareToGdpResponseHandler(response){
+				var data = response.getDataTable();
+				var options = {
+					colorAxis: {colors: ['#d9a86d', '#9d2527']}, 
+					title: "Per Capita Healthcare Spending VS Per Capita GDP in Dollars (2018)",
+					vAxis: {title: "Per Capita Healthcare Spending in Dollars ($)"},
+					hAxis: {title: 'GDP Per Capita in Dollars ($)'}
+				};
+				var chart = new google.visualization.BubbleChart(document.getElementById('perCapita_healthcareToGdp_div'));
+				chart.draw(data, options);
+			} //perCapitaHealthcareToGdpResponseHandler
+
+			function healthcareGrowResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					colors: ['#663a44'],
+					legend: 'none',
+					annotations: {alwaysOutside: true},
+					vAxis: {title: 'Growing Values in Billions ($)'},
+					hAxis: {title: 'Countries'},
+					title: 'Healthcare Spending Growing Top 10 (Billions $) (2011-2018)'
+				};
+				var view = new google.visualization.DataView(data);
+				view.setColumns([0,1,{
+						calc: function(dt, row){
+							return Math.floor(dt.getFormattedValue(row, 1)) + 'B';
+						},
+						sourceColumn: 1,
+						type: 'string',
+						role: 'annotation'
+				}]);
+				var chart = new google.visualization.ColumnChart(document.getElementById('healthcareGrow_div'));
+				chart.draw(view, options);
+			} //healthcareGrowResponseHandler
+
+			function healthcareGrowRateResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					colors: ['#3d7a96'],
+					legend: 'none',
+					annotations: {alwaysOutside: true},
+					vAxis: {title: 'Countries'},
+					hAxis: {title: 'Growing Percentage(%)'},
+					title: 'Healthcare Spending Fast Growing Top 10 (%) (2011-2018)'
+				};
+				var view = new google.visualization.DataView(data);
+				view.setColumns([0,1,{
+						calc: function(dt, row){
+							return Math.floor(dt.getFormattedValue(row, 1)) + '%';
+						},
+						sourceColumn: 1,
+						type: 'string',
+						role: 'annotation'
+				}]);
+				var chart = new google.visualization.BarChart(document.getElementById('healthcareGrowRate_div'));
+				chart.draw(view, options);
+			} //healthcareGrowRateResponseHandler
+		</script>
+	</head>
+
+	<body>
+	<!-- Header -->
+		<div id="header">
+			<div id="nav-wrapper"> 
+				<!-- Nav -->
+				<nav id="nav">
+					<ul>
+						<li><a href="index.html">Homepage</a></li>
+						<li><a href="educationSpending.html">education spending</a></li>
+						<li class="active"><a href="healthcareSpending.html">healthcare spending</a></li>
+						<li><a href="militarySpending.html">military spending</a></li>
+					</ul>
+				</nav>
+			</div>
+			<div class="container"> 
+				<!-- Logo -->
+				<div id="logo">
+					<h1><a href="#">Healthcare</a></h1>
+					<span class="tag">Spending</span>
+				</div>
+			</div>
+		</div>
+	<!-- Header --> 
+
+	<!-- Tweet -->
+		<div id="tweet">
+			<div class="container">
+				<section>
+					<blockquote>
+						Healthcare Spending Analysis for Top 10 G20 Countries（Billions $）
+						<br>
+						Top 1: United States 
+					</blockquote>
+					<div id="healthcareSpending_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Average Healthcare Spending 2011-2018 (Billions $)
+						<br>
+						Top 1: United States - 2973 Billlions 
+					</blockquote>
+					<div id="healthcareMeanSpending_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Healthcare Spending as % GDP 2011-2018 
+						<br>
+						Top 1: United States
+					</blockquote>
+					<div id="healthcareToGdp_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Healthcare Spending as % GDP (2018)
+						<br>
+						Top 1: United States 16.9%
+					</blockquote>
+					<div id="healthcareToGdpTop_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Per Capita Healthcare Spending VS GDP (2018)
+					</blockquote>
+					<div id="perCapita_healthcareToGdp_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Fast Growing Countries in Values (2011-2018)
+						<br>
+						Top 1: United Stated - 937 Billions
+					</blockquote>
+					<div id="healthcareGrow_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Fast Growing Countries in Percentage (2011-2018)
+						<br>
+						Top 1: China - 119%
+					</blockquote>
+					<div id="healthcareGrowRate_div" style="width: 1000px; height:500px;"></div>
+					<br>
+				</section>
+			</div>
+		</div>
+	<!-- /Tweet -->
+
+	<!-- Footer -->
+		<div id="footer">
+			<div class="container">
+				<section>
+					<header>
+						<h2>Back to <a href="healthcareSpending.html">Top</a>
+							| Next <a href="militarySpending.html">Military</a>
+						</h2>
+						<span class="byline">DATS 6401 - Individual Project - Sisi Zhang</span>
+					</header>
+				</section>
+			</div>
+		</div>
+	<!-- /Footer -->
+
+	<!-- Copyright -->
+		<div id="copyright">
+			<div class="container">
+				Design: <a href="http://templated.co">TEMPLATED</a> Images: <a href="http://unsplash.com">Unsplash</a> (<a href="http://unsplash.com/cc0">CC0</a>)
+				&copy; <script>var d = new Date(); document.write(d.getFullYear());</script> 
+                | Sisi Zhang
+			</div>
+		</div>
+	</body>
+</html>

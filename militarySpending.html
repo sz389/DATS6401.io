@@ -1,0 +1,257 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Military Spending</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,700,500,900' rel='stylesheet' type='text/css'>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-panels.min.js"></script>
+		<script src="js/init.js"></script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel-noscript.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-desktop.css" />
+		</noscript>
+		<script src="https://www.gstatic.com/charts/loader.js"></script>
+		<script>
+			google.charts.load('current', {'packages':['corechart','geochart']});
+			google.charts.setOnLoadCallback(drawAllSheets);
+
+			function drawAllSheets() {
+				drawSheetName('military', 'SELECT A,C,D,E,F,G,H,I,J', militarySpendingResponseHandler);
+				drawSheetName('military', 'SELECT A,K', militaryMeanSpendingResponseHandler);
+				drawSheetName('militarytogdp', 'SELECT A,C,D,E,F,G,H,I,J', militaryToGdpResponseHandler);
+				drawSheetName('militarytogdp', 'SELECT A,J', militaryToGdpTopResponseHandler);
+				drawSheetName('militarypercapita', 'SELECT A,L,M,N,O', perCapitamilitaryToGdpResponseHandler);
+				drawSheetName('education', 'SELECT A,N,O,P', e_h_mSpendingResponseHandler);
+				drawSheetName('educationToGdp', 'SELECT A,L,M,N', e_h_mToGdpSpendingResponseHandler);
+			} //drawAllSheets
+
+			function drawSheetName(sheetName, query, responseHandler){
+				var queryString = encodeURIComponent(query);
+				var query = new google.visualization.Query(
+					'https://docs.google.com/spreadsheets/d/1goZqWAPoNeKlGyWpantIMhWegRfgnA5F-Nm4moO6l4Y/gviz/tq?sheet='
+					+ sheetName + '&headers=1&tq=' + queryString);
+				query.send(responseHandler);
+			} //drawSheetName
+
+			function militarySpendingResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 8, desc: true});
+				var options = {
+					legend: {},
+					bar: {groupWidth: "95%"},
+					title: "Military Expenditure 2011-2018 (Billions $)",
+					vAxis: {title: "Spending in Billions ($)"},
+					hAxis: {title: 'Countries'},
+					colors: ['#24425a','#5b8ca8', '#7b9cb4', '#9ba9ca', '#537496','#d7d9e8','#394962','#7383a3']
+				};
+				var chart = new google.visualization.ColumnChart(document.getElementById('militarySpending_div'));
+				chart.draw(data, options);
+			} //militarySpendingResponseHandler
+
+			function militaryMeanSpendingResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var option = {
+					title: 'Top 10 Countries by Military Spending in US $ (Billions)',
+					pieHole: 0.5,
+					colors: ['#6e5331','#966330', '#b37745', '#c18a26', '#ab7915','#e5c56f','#e5c56f','#e5c56f','#e5c56f','#e5c56f','#e5c56f','#e5c56f','#e5c56f','#e5c56f']
+				};
+				var chart = new google.visualization.PieChart(document.getElementById('militaryMeanSpending_div'));
+				chart.draw(data,option)
+			}//militaryMeanSpendingResponseHandler
+
+			function militaryToGdpResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 8, desc: true});
+				var options = {
+					legend: {},
+					bar: {groupWidth: "90%"},
+					title: "Military Expenditure as Shared of GDP (%)",
+					vAxis: {title: "Percentage of GDP(%)"},
+					hAxis: {title: 'Countries'},
+					colors: ['#e29e40', '#a04800', '#c18f78', '#b09858','#9e1e25','#6b402d','#b05554','#e7c473'],
+				};
+				var chart = new google.visualization.ColumnChart(document.getElementById('militaryToGdp_div'));
+				chart.draw(data, options);
+			} //militarySpendingResponseHandler
+			
+			function militaryToGdpTopResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					colors: ['#387070'],
+					legend: 'none',
+					annotations: {alwaysOutside: true}, 
+					title: 'Top 10 by Military Expenditure for 2018 as shared of GDP (%)',
+					vAxis: {title: 'Country'},
+					hAxis: {title: 'Percentage of GDP(%)'}
+				};
+				var view = new google.visualization.DataView(data);
+				view.setColumns([0,1, {
+					calc: function(dt, row){                
+						return Math.ceil(dt.getFormattedValue(row, 1)) + '%';
+					},
+					sourceColumn: 1,
+					type: 'string',
+					role: 'annotation'
+				}]);
+				var chart = new google.visualization.BarChart(document.getElementById('militaryToGdpTop_div'));
+				chart.draw(view, options);
+			}//militaryToGdpTopResponseHandler
+
+			function perCapitamilitaryToGdpResponseHandler(response){
+				var data = response.getDataTable();
+				var options = {
+					colorAxis: {colors: ['#fadc10', '#19739a']}, 
+					title: "Per Capita Military Spending VS Per Capita GDP in Dollars (2018)",
+					vAxis: {title: "Per Capita Military Spending in Dollars ($)"},
+					hAxis: {title: 'GDP Per Capita in Dollars ($)'},
+				};
+				var chart = new google.visualization.BubbleChart(document.getElementById('perCapita_militaryToGdp_div'));
+				chart.draw(data, options);
+			} //perCapitaMilitaryToGdpResponseHandler
+
+			function e_h_mSpendingResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					colors: ['#305838','a04800','#c8a030'],
+					isStacked: true,
+					title: 'Education Spending VS Military Spending VS Healthcare Spending 2011-2018 (Average) (Billions $)',
+					vAxis: {title: 'Country'},
+					hAxis: {title: 'Spending in Billions ($)'}
+				};
+				var chart = new google.visualization.BarChart(document.getElementById('e_h_mspending_div'));
+				chart.draw(data, options);
+			} //e_h_mSpendingResponseHandler
+
+			function e_h_mToGdpSpendingResponseHandler(response){
+				var data = response.getDataTable();
+				data.sort({column: 1, desc: true});
+				var options = {
+					colors: ['#305838','a04800','#c8a030'],
+					isStacked: true,
+					title: 'Education as % GDP VS Military as % GDP  VS Healthcare as % GDP (2018)',
+					vAxis: {title: 'Percentage (%)'},
+					hAxis: {title: 'Countries'}
+				};
+				var chart = new google.visualization.ColumnChart(document.getElementById('e_h_mToGdpspending_div'));
+				chart.draw(data, options);
+			} //e_h_mToGdpSpendingResponseHandler
+		</script>
+	</head>
+
+	<body>
+	<!-- Header -->
+		<div id="header">
+			<div id="nav-wrapper"> 
+				<!-- Nav -->
+				<nav id="nav">
+					<ul>
+						<li><a href="index.html">Homepage</a></li>
+						<li><a href="educationSpending.html">education spending</a></li>
+						<li><a href="healthcareSpending.html">healthcare spending</a></li>
+						<li class="active"><a href="militarySpending.html">military spending</a></li>
+					</ul>
+				</nav>
+			</div>
+			<div class="container"> 
+				
+				<!-- Logo -->
+				<div id="logo">
+					<h1><a href="#">Military</a></h1>
+					<span class="tag">Spending</span>
+				</div>
+			</div>
+		</div>
+	<!-- Header --> 
+
+	<!-- Tweet -->
+		<div id="tweet">
+			<div class="container">
+				<section>
+					<blockquote>
+						Military Spending Analysis for Top 10 G20 Countries
+						<br>
+						Top 1: United States
+					</blockquote>
+					<div id="militarySpending_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Average Military Spending 2011-2018 (Billions $)
+						<br>
+						Top 1: United States - 676 Billlions 
+					</blockquote>
+					<div id="militaryMeanSpending_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Military Spending as % GDP 2011-2018 
+						<br>
+						Top 1: Saudi Arabia
+					</blockquote>
+					<div id="militaryToGdp_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Military Spending as % GDP (2018)
+						<br>
+						Top 1: Saudi Arabia 10%
+					</blockquote>
+					<div id="militaryToGdpTop_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Per Capita Military Spending VS GDP (2018)
+					</blockquote>
+					<div id="perCapita_militaryToGdp_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Education Spending VS Military Spending VS Healthcare Spending
+					</blockquote>
+					<div id="e_h_mspending_div" style="width: 1000px; height:500px;"></div>
+					<blockquote>
+						Spendings as shared of GDP Comparison (2018)
+					</blockquote>
+					<div id="e_h_mToGdpspending_div" style="width: 1000px; height:500px;"></div>
+
+				</section>
+			</div>
+		</div>
+	<!-- /Tweet -->
+
+	<!-- Main -->
+		<div id="main">
+			<div id="content" class="container">
+				<section>
+					<header>
+						<h2>Summary</h2>
+						<span class="byline">As we can see base on the data we have since 2011 to 2018, it is clearly shows that as for Healthcare Spending is their biggest spending among most of 14 Countries. US is top one for sure. It shared 17% of country’s GDP as 2018. China has highest grow rate 119% in 7 years , but value wise, US is spending way more than other countries and growing the most. US has almost 3000 billions average spending every year in healthcare, which is the total of other 13 countries. The second high spending category is education. As for education, US is also the top one which has average education spending more than 800 billions every year. China has highest growing rate, which is 85% in 7 year, but value wise China only have quarter of US education spending and still has second ranking among 14 countries.  Compare to healthcare and education, most countries spends least in military. Saudi Arabia stands out in military spending, for instance 2015, they have highest spending in military as shared of GDP, which is 13.3 %. But in value wise, US is the top one, and much more higher than other 13 countries. Thus, we can conclude that US spends the most in all three categories among 14 countries. </span>
+					</header>
+				</section>
+			</div>
+		</div>
+	<!-- /Main -->
+
+	<!-- Footer -->
+		<div id="footer">
+			<div class="container">
+				<section>
+					<header>
+						<h2>Back to <a href="militarySpending.html">Top</a>
+							|  <a href="index.html">Homepage</a>
+						</h2>
+						<span class="byline">DATS 6401 - Individual Project - Sisi Zhang</span>
+					</header>
+				</section>
+			</div>
+		</div>
+	<!-- /Footer -->
+
+	<!-- Copyright -->
+		<div id="copyright">
+			<div class="container">
+				Design: <a href="http://templated.co">TEMPLATED</a> Images: <a href="http://unsplash.com">Unsplash</a> (<a href="http://unsplash.com/cc0">CC0</a>)
+				&copy; <script>var d = new Date(); document.write(d.getFullYear());</script> 
+                | Sisi Zhang
+			</div>
+		</div>
+	</body>
+</html>
