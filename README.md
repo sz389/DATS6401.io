@@ -1,4 +1,3 @@
-# DATS6401.io
 # G20 Countries Education, Healthcare, Military Spending Analysis and Visualization (2011-2018)
 
 This is a data visualization project of analysis countries’ have highest spending in education, healthcare and military from 2011-2018. The 14 countries from G20 are listed below: Australia, Brazil, Canada, China, Germany, France, United Kingdom, India, Italy, Japan, Korea, Russia, Saudi Arabia, United States. The data source if from word bank, (https://data.worldbank.org)
